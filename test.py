@@ -20,7 +20,6 @@ class PropensityNetwork:
         self.state = [True]*self.num_nodes
         self.propensities = propensities
     def next(self):
-        print 'old state', self.state
         new_state = [rule(self.state) for rule in self.rules]
         propensities = [prop[node] for prop, node in zip(self.propensities, new_state)]
         uniform = np.random.rand(self.num_nodes)
