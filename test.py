@@ -13,6 +13,19 @@ class BoolNetwork:
     def set_state(self, state):
         self.state = map(int, (state + 1.)/2.)
 
+class PropensityNetwork:
+    def __init__(self, num_nodes, rules, propensities):
+        self.num_nodes = num_nodes
+        self.rules = rules
+        self.state = [True]*self.num_nodes
+        self.propensities = propensities
+    def next(self):
+        print 'old state', self.state
+        new_state = [rule(self.state) for rule in self.rules]
+        propensities = [prop[node] for prop, node in zip(self.propensities, new_state)]
+        uniform = np.random.rand(self.num_nodes)
+        self.state = [[a,b][u] for a,b,u in zip(self.state, new_state, uniform < propensities)]
+
 class TanhNetwork:
     def __init__(self, num_nodes, weights=None, learning_rate=0.01):
         self.num_nodes = num_nodes
@@ -65,5 +78,19 @@ def test1():
         print
         print t.weights
 
+def test2():
+    try:
+        b = PropensityNetwork(4,
+                        [lambda n:(n[1]),
+                         lambda n:(n[2]),
+                         lambda n:(n[3]),
+                         lambda n:(n[0])],
+                        [(.1,.2), (.3,.4), (.5,.6), (.7,.8)])
+        b.state = [1,0,1,0]
+        b.next()
+    except KeyboardInterrupt, e:
+        print
+        print t.weights
+
 if __name__ == '__main__':
-    test1()
+    test2()
