@@ -14,7 +14,7 @@ class BoolNetwork:
     def __init__(self, num_nodes, rules):
         self.num_nodes = num_nodes
         self.rules = rules
-        self.state = [True]*self.num_nodes
+        self.state = np.ones(self.num_nodes)
     def next(self):
         self.state = np.array([rule(self.state) for rule in self.rules])
     def get_state(self):
@@ -26,7 +26,7 @@ class PropensityNetwork(BoolNetwork):
     def __init__(self, num_nodes, rules, propensities):
         self.num_nodes = num_nodes
         self.rules = rules
-        self.state = [True]*self.num_nodes
+        self.state = np.ones(self.num_nodes)
         self.propensities = propensities
     def next(self):
         new_state = [rule(self.state) for rule in self.rules]
