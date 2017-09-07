@@ -16,7 +16,7 @@ class BoolNetwork:
         self.rules = rules
         self.state = [True]*self.num_nodes
     def next(self):
-        self.state = [rule(self.state) for rule in self.rules]
+        self.state = np.array([rule(self.state) for rule in self.rules])
     def get_state(self):
         return np.array(self.state)
     def set_state(self, state):
