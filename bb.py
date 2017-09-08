@@ -1,6 +1,7 @@
 # Mammalian immune response to B. bronchiseptica infection
 
-from test import BoolNetwork, random_state
+from test import PropensityNetwork, TanhNetwork, random_state
+import numpy as np
 
 rules = [
 lambda n: n[0] and not n[33],                                       #Bb
@@ -39,8 +40,15 @@ lambda n: n[31],                                                    #DCII
 lambda n: n[23] and n[0]                                            #PH
 ]
 
-b = BoolNetwork(34, rules)
-b.state = random_state(b.num_nodes)
-for _ in xrange(20):
-    print b.get_state()
+b = PropensityNetwork(34, rules, [(.8,.8)]*34)
+t = TanhNetwork(34)
+for _ in xrange(500):
+    b.state = random_state(b.num_nodes)
+    t.set_state(b.get_state())
     b.next()
+    t.next()
+    t.train(b.get_state())
+
+for i, row in enumerate(t.weights):
+    row = np.abs(row[:-1])
+    print i, '<-', np.nonzero(row > np.mean(row) + np.std(row))[0]

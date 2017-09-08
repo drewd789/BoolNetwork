@@ -32,7 +32,7 @@ class PropensityNetwork(BoolNetwork):
         new_state = [rule(self.state) for rule in self.rules]
         propensities = [prop[node] for prop, node in zip(self.propensities, new_state)]
         uniform = np.random.rand(self.num_nodes)
-        self.state = [[a,b][u] for a,b,u in zip(self.state, new_state, uniform < propensities)]
+        self.state = np.array([[a,b][u] for a,b,u in zip(self.state, new_state, uniform < propensities)])
 
 class TanhNetwork:
     def __init__(self, num_nodes, weights=None, learning_rate=0.01):
@@ -51,14 +51,14 @@ class TanhNetwork:
         self.state[:-1] = np.random.rand(self.num_nodes) < self.state[:-1]
         self.state[:-1] = asym_to_sym(self.state[:-1])
     def train(self, state):
-        error = self.state[:-1] - state
+        error = self.state[:-1] - asym_to_sym(state)
         delta_nodes = error * (1-self.tan_state**2)
         self.updates = delta_nodes[np.newaxis].T.dot(self.last_state[np.newaxis])
         self.weights -= self.learning_rate * self.updates
     def set_state(self, state):
         self.state[:-1] = asym_to_sym(state)
     def get_state(self):
-        return sym_to_asym(self.state[:-1])
+        return sym_to_asym(self.state[:-1]).astype(np.int)
 
 # Returns a random state vector of length n in asymmetric representation.
 def random_state(n):
