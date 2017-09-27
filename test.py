@@ -15,12 +15,28 @@ class BoolNetwork:
         self.num_nodes = num_nodes
         self.rules = rules
         self.state = np.ones(self.num_nodes)
+    def node_probs(self, state):
+        probs = np.array([rule(state) for rule in self.rules])
+        return probs
     def next(self):
-        self.state = np.array([rule(self.state) for rule in self.rules])
+        self.state = self.node_probs(self.state)
     def get_state(self):
         return np.array(self.state)
     def set_state(self, state):
         self.state = np.array(state)
+    def transition(self, state):
+        num_states = 2**self.num_nodes
+        node_probs = self.node_probs(state)
+        probs = np.zeros(num_states)
+        for next_state in xrange(num_states):
+            prod = 1
+            for val,prob in zip(map(int,('{0:0%db}'%self.num_nodes).format(next_state)),node_probs):
+                if val:
+                    prod *= prob
+                else:
+                    prod *= (1-prob)
+            probs[next_state] = prod
+        return probs
 
 class PropensityNetwork(BoolNetwork):
     def __init__(self, num_nodes, rules, propensities):
@@ -28,11 +44,15 @@ class PropensityNetwork(BoolNetwork):
         self.rules = rules
         self.state = np.ones(self.num_nodes)
         self.propensities = propensities
+    def node_probs(self, state):
+        new_state = [rule(state) for rule in self.rules]
+        propensities = [prop[int(node)] for prop, node in zip(self.propensities, new_state)]
+        probs = [prop*node+(1-prop)*old for prop, node, old in zip(propensities, new_state, state)]
+        return np.array(probs)
     def next(self):
-        new_state = [rule(self.state) for rule in self.rules]
-        propensities = [prop[node] for prop, node in zip(self.propensities, new_state)]
+        probs = self.node_probs(self.state)
         uniform = np.random.rand(self.num_nodes)
-        self.state = np.array([[a,b][u] for a,b,u in zip(self.state, new_state, uniform < propensities)])
+        self.state = np.array(uniform < probs, dtype=np.float)
 
 class TanhNetwork:
     def __init__(self, num_nodes, weights=None, learning_rate=0.01):
@@ -44,6 +64,10 @@ class TanhNetwork:
         else:
             self.weights = np.zeros((self.num_nodes,self.num_nodes+1))
         self.learning_rate = learning_rate
+    def node_probs(self, state):
+        tan_state = np.tanh(self.weights.dot(state))
+        probs = sym_to_asym(tan_state)
+        return probs
     def next(self):
         self.last_state = self.state.copy()
         self.tan_state = np.tanh(self.weights.dot(self.state))
@@ -115,5 +139,14 @@ def test2():
         print
         print t.weights
 
+def test3():
+    b = PropensityNetwork(4,
+                    [lambda n:(n[1]),
+                     lambda n:(n[2]),
+                     lambda n:(n[3]),
+                     lambda n:(n[0])],
+                    [(.9,.9)]*4)
+    print b.transition([1,0,1,0])
+
 if __name__ == '__main__':
-    test2()
+    test3()
