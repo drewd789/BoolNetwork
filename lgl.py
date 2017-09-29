@@ -3,6 +3,9 @@
 from test import PropensityNetwork, TanhNetwork, random_state
 import numpy as np
 
+Stimuli = IAP = Mcl1 = BclxL = PIAS = True
+IL15 = CD45 = False
+
 rules = [
 lambda n: n[47] and not (n[3] or n[36]),                                                #0: TCR
 lambda n: n[22] and not n[36],                                                          #1: Fyn
@@ -55,8 +58,9 @@ lambda n: n[47],                                                                
 lambda n: (n[9] and n[18] and n[33]) and not ((n[28] and n[24]) or n[36]),              #48: Mcl1
 ]
 
-b = PropensityNetwork(len(rules), rules, [(.9,.9)]*34)
-t = TanhNetwork(len(rules))
+numNodes = len(rules)
+b = PropensityNetwork(numNodes, rules, [(.9,.9)]*numNodes)
+t = TanhNetwork(numNodes)
 for _ in xrange(5000):
     b.state = random_state(b.num_nodes)
     t.set_state(b.get_state())
