@@ -25,9 +25,12 @@ class BoolNetwork:
     def set_state(self, state):
         self.state = np.array(state)
     def transition(self, state):
+        '''Untested method.
+           Computes a column of the transition matrix.
+           Will run out of memory if the number of nodes is large.'''
         num_states = 2**self.num_nodes
-        node_probs = self.node_probs(state)
         probs = np.zeros(num_states)
+        node_probs = self.node_probs(state)
         for next_state in xrange(num_states):
             prod = 1
             for val,prob in zip(map(int,('{0:0%db}'%self.num_nodes).format(next_state)),node_probs):
@@ -37,6 +40,16 @@ class BoolNetwork:
                     prod *= (1-prob)
             probs[next_state] = prod
         return probs
+    def transition2(self, state1, state2):
+        '''Computes an entry of the transition matrix.'''
+        prod = 1
+        node_probs = self.node_probs(state1)
+        for val,prob in zip(state2, node_probs):
+            if val:
+                prod *= prob
+            else:
+                prod *= (1-prob)
+        return prod
 
 class PropensityNetwork(BoolNetwork):
     def __init__(self, num_nodes, rules, propensities):

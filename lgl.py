@@ -71,3 +71,6 @@ for _ in xrange(5000):
 for i, row in enumerate(t.weights):
     arow = np.abs(row[:-1])
     print i, '<-', np.nonzero(arow > np.mean(arow) + np.std(arow))[0]
+
+state = random_state(b.num_nodes)
+print b.transition(state)
